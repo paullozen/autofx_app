@@ -42,7 +42,7 @@ backend/.env
 # Application specific
 output/
 chrome_profiles/
-txt_inbox/
+txt_inbox/txt_processed
 manifesto.json
 
 # Backup files
