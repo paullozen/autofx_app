@@ -128,7 +128,7 @@ const ImageSuggestionsConfigModal = ({ onClose }) => {
                                 value={imagePattern}
                                 onChange={(e) => setImagePattern(e.target.value)}
                                 className="flex-1 w-full p-4 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none min-h-[400px]"
-                                placeholder="Enter image generation pattern..."
+                                placeholder="Write as required -> pattern name ; description"
                             />
                             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                 This pattern defines the style and negative prompts for the image generator.
