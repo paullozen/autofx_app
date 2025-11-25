@@ -94,16 +94,18 @@ const Sidebar = ({ selectedStage, onSelectStage, theme, toggleTheme }) => {
             <span className="truncate">{stage.label}</span>
           </button>
 
-          {hasFolder && (
-            <button
-              onClick={(e) => handleOpenFolder(e, stage.id)}
-              onMouseEnter={(e) => handleFolderHover(e)}
-              onMouseLeave={handleFolderLeave}
-              className="p-2 mr-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors relative"
-            >
-              <Folder className="w-4 h-4" />
-            </button>
-          )}
+          {/* Folder functionality hidden
+            {hasFolder && (
+                <button
+                    onClick={(e) => handleOpenFolder(e, stage.id)}
+                    onMouseEnter={(e) => handleFolderHover(e)}
+                    onMouseLeave={handleFolderLeave}
+                    className="p-2 mr-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-md transition-colors relative"
+                >
+                    <Folder className="w-4 h-4" />
+                </button>
+            )}
+            */}
         </div>
         {showDividerAfter && (
           <hr className="my-2 border-gray-200 dark:border-gray-700" />
@@ -155,19 +157,20 @@ const Sidebar = ({ selectedStage, onSelectStage, theme, toggleTheme }) => {
         </div>
       </div>
 
-      {/* Fixed Tooltip Portal */}
+      {/* Fixed Tooltip Portal - Hidden
       {tooltip && (
-        <div
-          className="fixed z-[9999] px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none whitespace-nowrap"
-          style={{
-            top: tooltip.top,
-            left: tooltip.left,
-            transform: 'translateY(-50%)'
-          }}
+        <div 
+            className="fixed z-[9999] px-2 py-1 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none whitespace-nowrap"
+            style={{ 
+                top: tooltip.top, 
+                left: tooltip.left,
+                transform: 'translateY(-50%)'
+            }}
         >
-          {tooltip.label}
+            {tooltip.label}
         </div>
       )}
+      */}
     </>
   );
 };

@@ -82,31 +82,47 @@ app.delete('/delete-profile/:profileName', (req, res) => {
 // Endpoint to open folder in file explorer
 app.post('/open-folder', (req, res) => {
     const { folderPath } = req.body;
+    console.log(`[Open Folder] Request for: ${folderPath}`);
 
     try {
-        const fullPath = path.isAbsolute(folderPath)
+        let fullPath = path.isAbsolute(folderPath)
             ? folderPath
-            : path.join(__dirname, 'backend', folderPath);
+            : path.join(__dirname, folderPath);
+
+        // Normalize path separators for the OS
+        fullPath = path.normalize(fullPath);
+        console.log(`[Open Folder] Resolved path: ${fullPath}`);
 
         if (!fs.existsSync(fullPath)) {
-            return res.json({ success: false, error: 'Folder not found' });
+            console.log(`[Open Folder] Path does not exist. Creating it...`);
+            fs.mkdirSync(fullPath, { recursive: true });
         }
 
         // Open folder based on OS
         const { exec } = require('child_process');
-        const command = process.platform === 'win32'
-            ? `explorer "${fullPath}"`
-            : process.platform === 'darwin'
-                ? `open "${fullPath}"`
-                : `xdg-open "${fullPath}"`;
+        let command;
+
+        if (process.platform === 'win32') {
+            command = `explorer "${fullPath}"`;
+        } else if (process.platform === 'darwin') {
+            command = `open "${fullPath}"`;
+        } else {
+            // Linux
+            command = `xdg-open "${fullPath}"`;
+        }
+
+        console.log(`[Open Folder] Executing command: ${command}`);
 
         exec(command, (error) => {
             if (error) {
+                console.error(`[Open Folder] Error executing command: ${error.message}`);
                 return res.json({ success: false, error: error.message });
             }
+            console.log(`[Open Folder] Command executed successfully.`);
             res.json({ success: true, message: 'Folder opened' });
         });
     } catch (error) {
+        console.error(`[Open Folder] Unexpected error: ${error.message}`);
         res.json({ success: false, error: error.message });
     }
 });
