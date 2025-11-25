@@ -44,6 +44,7 @@ output/
 chrome_profiles/
 txt_inbox/txt_processed
 manifesto.json
+prompts/*
 
 # Backup files
 *.backup
