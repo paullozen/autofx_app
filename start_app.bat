@@ -10,7 +10,25 @@ echo ========================================
 where npm >nul 2>nul
 if %errorlevel% neq 0 (
     echo ❌ Error: Node.js is not installed.
-    echo Please install Node.js from https://nodejs.org/
+    echo.
+    echo We can try to install it automatically using Winget.
+    choice /M "Do you want to install Node.js now?"
+    if errorlevel 1 (
+        echo 📦 Installing Node.js...
+        winget install -e --id OpenJS.NodeJS
+        if %errorlevel% neq 0 (
+            echo ❌ Installation failed. Opening download page...
+            start https://nodejs.org/
+        ) else (
+            echo ✅ Node.js installed!
+            echo ⚠️  Please RESTART this script to apply changes.
+            pause
+            exit /b
+        )
+    ) else (
+        echo Opening download page...
+        start https://nodejs.org/
+    )
     pause
     exit /b 1
 )
@@ -19,7 +37,25 @@ if %errorlevel% neq 0 (
 where python >nul 2>nul
 if %errorlevel% neq 0 (
     echo ❌ Error: Python is not installed.
-    echo Please install Python from https://www.python.org/
+    echo.
+    echo We can try to install it automatically using Winget.
+    choice /M "Do you want to install Python 3 now?"
+    if errorlevel 1 (
+        echo 📦 Installing Python 3...
+        winget install -e --id Python.Python.3.11
+        if %errorlevel% neq 0 (
+            echo ❌ Installation failed. Opening download page...
+            start https://www.python.org/downloads/
+        ) else (
+            echo ✅ Python installed!
+            echo ⚠️  Please RESTART this script to apply changes.
+            pause
+            exit /b
+        )
+    ) else (
+        echo Opening download page...
+        start https://www.python.org/downloads/
+    )
     pause
     exit /b 1
 )

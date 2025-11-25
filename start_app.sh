@@ -19,14 +19,38 @@ echo "========================================"
 # 1. Check Node.js
 if ! command -v npm &> /dev/null; then
     echo "❌ Error: Node.js (npm) is not installed."
-    echo "Please install Node.js from https://nodejs.org/"
+    echo ""
+    echo "👉 To install, try running:"
+    if command -v apt &> /dev/null; then
+        echo "   sudo apt update && sudo apt install -y nodejs npm"
+    elif command -v dnf &> /dev/null; then
+        echo "   sudo dnf install -y nodejs npm"
+    elif command -v brew &> /dev/null; then
+        echo "   brew install node"
+    elif command -v pacman &> /dev/null; then
+        echo "   sudo pacman -S nodejs npm"
+    else
+        echo "   Please install Node.js from https://nodejs.org/"
+    fi
     exit 1
 fi
 
 # 2. Check Python
 if ! command -v python3 &> /dev/null; then
     echo "❌ Error: Python 3 is not installed."
-    echo "Please install Python 3."
+    echo ""
+    echo "👉 To install, try running:"
+    if command -v apt &> /dev/null; then
+        echo "   sudo apt update && sudo apt install -y python3 python3-venv python3-pip"
+    elif command -v dnf &> /dev/null; then
+        echo "   sudo dnf install -y python3 python3-pip"
+    elif command -v brew &> /dev/null; then
+        echo "   brew install python"
+    elif command -v pacman &> /dev/null; then
+        echo "   sudo pacman -S python python-pip"
+    else
+        echo "   Please install Python 3 from https://www.python.org/"
+    fi
     exit 1
 fi
 
