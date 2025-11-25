@@ -1,6 +1,31 @@
 # AutoFX App - YouTube Content Pipeline
 
-## 🚀 Como Executar
+# AutoFX App - YouTube Content Pipeline
+
+## 🚀 Início Rápido (Plug-and-Play)
+
+Para facilitar o uso, criamos scripts automáticos que instalam dependências e iniciam tudo para você.
+
+### Linux / Mac
+1. Abra o terminal na pasta do projeto.
+2. Execute o script:
+   ```bash
+   ./start_app.sh
+   ```
+
+### Windows
+1. Dê um duplo clique no arquivo `start_app.bat`.
+
+O script irá verificar e instalar automaticamente:
+- Dependências do Node.js (`npm install`)
+- Ambiente virtual Python e bibliotecas (`venv`, `pip install`)
+- Navegadores necessários (`playwright`)
+
+Em seguida, ele abrirá os servidores Backend e Frontend.
+
+---
+
+## 🛠️ Instalação Manual (Alternativa)
 
 ### Pré-requisitos
 - Node.js 18+
