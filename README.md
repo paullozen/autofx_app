@@ -40,16 +40,36 @@ Servidor rodando em: http://localhost:3001
 
 ### Mapeamento Menu → Scripts Python
 
-| Menu Lateral | Script Python |
-|--------------|---------------|
-| Create Profile | `profile_generator.py` |
-| Channel Info | `channel_info.py` |
-| Clean Base | `clean_bases.py` |
-| Get Scripts | `get_scripts.py` |
-| SRT Generator | `srt_generator.py` |
-| Image Suggestions | `suggestion_generator.py` |
-| Image Generator | `image_generator.py` |
-| Image Render | `make_and_render.py` |
+| Menu Lateral | Script Python | Descrição |
+|--------------|---------------|-----------|
+| **Create Profile** | `profile_generator.py` | Cria perfis do Chrome para automação |
+| **API Key** | N/A | Gerenciamento seguro de chaves de API |
+| **Script** | `get_scripts.py` | Baixa roteiros do Notion ou permite entrada manual |
+| **SRT Generator** | `srt_generator.py` | Gera legendas sincronizadas |
+| **Audio Generator** | `audio_generator.py` | Gera áudio usando GenAI Pro |
+| **Audio Download** | `audio_downloader.py` | Baixa os áudios gerados |
+| **Image Suggestions** | `suggestion_generator.py` | Gera prompts de imagem baseados no roteiro |
+| **Image Generator** | `image_generator.py` | Gera imagens usando IA |
+| **Image Render** | `make_and_render.py` | Renderiza o vídeo final |
+| **Channel Info** | `channel_info.py` | Coleta informações do canal |
+| **Clean Base** | `clean_bases.py` | Limpa arquivos temporários |
+
+### ✨ Novas Funcionalidades
+
+#### 🔑 Gerenciamento de API Keys
+- Acesse a aba **API Key** no menu lateral.
+- Interface segura para gerenciar chaves do OpenAI, GenAI Pro, YouTube e Notion.
+- As chaves são salvas criptografadas/mascaradas na interface.
+- Persistência automática no arquivo `backend/.env`.
+
+#### 🖼️ Configuração de Sugestões de Imagem
+- Na aba **Image Suggestions**, clique no botão **Config**.
+- Edite diretamente os prompts usados para gerar sugestões de cenas e padrões de imagem.
+- Salva automaticamente nos arquivos `prompts/Scene_Suggestion.txt` e `prompts/IMG_PATTERNS.txt`.
+
+#### 📂 Acesso Rápido a Pastas
+- Ícones de pasta no menu lateral permitem abrir diretamente o diretório de output correspondente a cada ferramenta.
+- Facilita a verificação de arquivos gerados (áudios, imagens, vídeos).
 
 ### Create Profile
 1. Clique em **"Create Profile"** na barra lateral
@@ -73,7 +93,7 @@ Servidor rodando em: http://localhost:3001
 ## 🔧 Como Funciona
 
 1. **Frontend (React)**: Interface do usuário
-2. **Backend (Node.js)**: Servidor que executa scripts Python
+2. **Backend (Node.js)**: Servidor que executa scripts Python e gerencia arquivos
 3. **Scripts Python**: Processam as tarefas do pipeline
 
 ### Fluxo de Execução
@@ -84,14 +104,6 @@ Servidor rodando em: http://localhost:3001
 4. Input é enviado para o script Python via stdin
 5. Output do Python é capturado linha por linha
 6. Logs são exibidos no **Execution Log** em tempo real
-
-### Input Interativo
-
-Quando um script Python pede input:
-1. Digite no campo verde acima do terminal
-2. Pressione Enter
-3. O input é enviado via `/send-input` endpoint
-4. O script continua a execução
 
 ## 🎨 Temas
 
@@ -105,6 +117,9 @@ Use o botão de tema na barra lateral para alternar.
 ```
 autofx_app/
 ├── backend/
+│   ├── .env                    # Arquivo de variáveis de ambiente (Gerado automaticamente)
+│   ├── audio_generator.py
+│   ├── audio_downloader.py
 │   ├── profile_generator.py
 │   ├── channel_info.py
 │   ├── clean_bases.py
@@ -117,11 +132,21 @@ autofx_app/
 │   ├── requirements.txt
 │   ├── chrome_profiles/        # Perfis criados
 │   └── support_scripts/        # Scripts auxiliares
+├── prompts/                    # Arquivos de configuração de prompts
+│   ├── Scene_Suggestion.txt
+│   └── IMG_PATTERNS.txt
+├── output/                     # Diretório de saída dos arquivos gerados
+│   ├── audio/
+│   ├── imgs_output/
+│   ├── render_output/
+│   └── ...
 ├── src/
 │   ├── components/
 │   │   ├── Sidebar.jsx
 │   │   ├── MainPanel.jsx
 │   │   ├── ExecutionLog.jsx
+│   │   ├── ApiKeyModal.jsx
+│   │   ├── ImageSuggestionsConfigModal.jsx
 │   │   └── Layout.jsx
 │   └── App.jsx
 ├── server.js                   # Servidor backend
@@ -130,22 +155,13 @@ autofx_app/
 
 ## 🔐 Configuração
 
-Alguns scripts precisam de variáveis de ambiente. Crie um arquivo `.env` na raiz do projeto (ou copie o exemplo):
+A configuração de chaves de API agora é feita diretamente pela interface gráfica na aba **API Key**. Não é necessário editar o arquivo `.env` manualmente.
 
-```bash
-cp .env.example .env   # copie e preencha os valores
-```
-
-```env
-# YouTube API
-YT_API_KEY=sua_chave_aqui
-
-# Notion API
-NOTION_TOKEN=seu_token_aqui
-NOTION_DATABASE_ID=id_do_database
-NOTION_DATA_SOURCE_ID=id_da_fonte
-```
-
+As chaves suportadas incluem:
+- **OpenAI**: `OPENAI_API_KEY`, `OPENAI_MODEL`
+- **GenAI Pro**: `GENAIPRO_API_KEY`
+- **YouTube**: `YT_API_KEY`, `YOUTUBE_CHANNEL_ID`
+- **Notion**: `NOTION_TOKEN`, `NOTION_DATABASE_ID`, `NOTION_DATA_SOURCE_ID`
 
 ## 🐛 Troubleshooting
 
