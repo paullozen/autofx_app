@@ -9,7 +9,7 @@ from support_scripts.paths import AUDIO_OUTPUT_DIR
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
-API_KEY = os.getenv('GENPROAI_API_KEY')
+API_KEY = os.getenv('GENAIPRO_API_KEY')
 BASE_URL = "https://genaipro.vn/api/v1" 
 URL_LIST = f"{BASE_URL}/labs/tasks"
 
@@ -35,7 +35,7 @@ def download_file(url, output_path):
 
 def main():
     if not API_KEY:
-        print("❌ Error: GENPROAI_API_KEY not found in .env file")
+        print("❌ Error: GENAIPRO_API_KEY not found in .env file")
         return
 
     # 1. Load Manifest and Filter Pending Downloads

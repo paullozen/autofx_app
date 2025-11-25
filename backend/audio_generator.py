@@ -11,9 +11,9 @@ from support_scripts.paths import TXT_INBOX_DIR
 env_path = Path(__file__).parent / '.env'
 load_dotenv(env_path)
 
-API_KEY = os.getenv('GENPROAI_API_KEY')
+API_KEY = os.getenv('GENAIPRO_API_KEY')
 BASE_URL = "https://genaipro.vn/api/v1" 
-
+ 
 # Configurações do Áudio
 VOICE_ID = "f5HLTX707KIM4SzJYzSz"
 MODEL_ID = "eleven_multilingual_v2"
@@ -56,6 +56,7 @@ def create_task(url, headers, payload):
 
 def check_balance(base_url, headers):
     """Query and display user balance."""
+    print("--- 💰 Checking Balance... ---")
     try:
         response = requests.get(f"{base_url}/me", headers=headers)
         if response.status_code == 200:
@@ -77,10 +78,10 @@ def check_balance(base_url, headers):
 
 def main():
     if not API_KEY:
-        print("❌ Error: GENPROAI_API_KEY not found in .env file")
+        print("❌ Error: GENAIPRO_API_KEY not found in .env file")
         return
 
-    # 0. Check Balance
+    # 0. Check Balance (Always runs first)
     check_balance(BASE_URL, headers)
 
     # 1. Load Manifest and Filter Pending
