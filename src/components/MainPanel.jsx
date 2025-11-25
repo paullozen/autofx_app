@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Camera, Mail, Lock, User, Plus, FolderOpen, Trash2, X } from 'lucide-react';
+import { Camera, Mail, Lock, User, Plus, FolderOpen, Trash2, X, Settings } from 'lucide-react';
+import ApiKeyModal from './ApiKeyModal';
+import ImageSuggestionsConfigModal from './ImageSuggestionsConfigModal';
 
 const MainPanel = ({ selectedStage, onExecuteScript, profiles = [], onDeleteProfile, onClose }) => {
     const [isLogin, setIsLogin] = useState(true);
@@ -96,6 +98,10 @@ const MainPanel = ({ selectedStage, onExecuteScript, profiles = [], onDeleteProf
                 </div>
             </div >
         );
+    }
+
+    if (selectedStage === 'api_key') {
+        return <ApiKeyModal onClose={onClose} />;
     }
 
     if (selectedStage === 'profile_generator') {
@@ -314,6 +320,7 @@ const MainPanel = ({ selectedStage, onExecuteScript, profiles = [], onDeleteProf
     // Image Suggestions - Special handler with Add Suggestions option
     if (selectedStage === 'suggestion_generator') {
         const [showAddDialog, setShowAddDialog] = useState(false);
+        const [showConfigModal, setShowConfigModal] = useState(false);
         const [suggestionTitle, setSuggestionTitle] = useState('');
         const [suggestionContent, setSuggestionContent] = useState('');
 
@@ -402,113 +409,106 @@ const MainPanel = ({ selectedStage, onExecuteScript, profiles = [], onDeleteProf
 
         return (
             <div className="flex-1 bg-transparent p-8 transition-colors duration-300">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 dark:bg-gray-900 dark:border-gray-800 max-w-4xl mx-auto relative">
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full dark:bg-gray-900 dark:border-gray-800 relative">
                     <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                         <X className="w-5 h-5" />
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-white">
-                        Image Suggestions
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Image Suggestions</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Start Process Card */}
-                        <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 dark:from-blue-900/20 dark:to-blue-800/20 dark:border-blue-800">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Generate from Script
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                                Run the AI-powered suggestion generator to create image prompts from your processed scripts.
-                            </p>
-                            <button
-                                onClick={handleStartProcess}
-                                className="w-full px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-bold shadow-sm flex items-center justify-center space-x-2"
-                            >
-                                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                                <span>Start Process</span>
-                            </button>
-                        </div>
-
-                        {/* Add Suggestions Card */}
-                        <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 dark:from-green-900/20 dark:to-green-800/20 dark:border-green-800">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Add Manually
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
-                                Manually add custom image suggestions with your own prompts and descriptions.
-                            </p>
-                            <button
-                                onClick={() => setShowAddDialog(true)}
-                                className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-bold shadow-sm flex items-center justify-center space-x-2"
-                            >
-                                <Plus className="w-5 h-5" />
-                                <span>Add Suggestions</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Add Suggestion Dialog */}
-                    {showAddDialog && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                                <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                                        Add Image Suggestions
-                                    </h3>
-                                    <button
-                                        onClick={() => setShowAddDialog(false)}
-                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
+                    {!showAddDialog ? (
+                        <div className="flex flex-col space-y-6 max-w-2xl">
+                            {/* Start Option */}
+                            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                                <button onClick={handleStartProcess}
+                                    className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-bold shadow-sm min-w-[140px]">
+                                    Start Process
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className="text-gray-900 font-medium dark:text-white">Generate Suggestions</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Create image prompts from scripts</span>
                                 </div>
+                            </div>
 
-                                <div className="p-6 space-y-4">
-                                    {/* Title Input */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Title / Base Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={suggestionTitle}
-                                            onChange={(e) => setSuggestionTitle(e.target.value)}
-                                            placeholder="e.g., MyVideo"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                        />
-                                    </div>
+                            {/* Add Manual Suggestions Option */}
+                            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                                <button onClick={() => setShowAddDialog(true)}
+                                    className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 transition-colors font-bold shadow-sm min-w-[140px] flex items-center justify-center space-x-2">
+                                    <Plus className="w-4 h-4" />
+                                    <span>Add Manual</span>
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className="text-gray-900 font-medium dark:text-white">Manual Entry</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Manually add suggestions for a script</span>
+                                </div>
+                            </div>
 
-                                    {/* Suggestions Textarea */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Suggestions
-                                        </label>
-                                        <textarea
-                                            value={suggestionContent}
-                                            onChange={(e) => setSuggestionContent(e.target.value)}
-                                            placeholder="Suggestion: Stick Figure in a frantic, comedic run, arms flailing, sweat drops flying...&#10;Suggestion: Stick Figure scratching its head in confusion, eyes narrowed in thought..."
-                                            rows={12}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white font-mono text-sm"
-                                        />
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex space-x-3 pt-4">
-                                        <button
-                                            onClick={() => setShowAddDialog(false)}
-                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={handleAddSuggestion}
-                                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-bold"
-                                        >
-                                            Add & Process
-                                        </button>
-                                    </div>
+                            {/* Configuration Option */}
+                            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border border-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                                <button onClick={() => setShowConfigModal(true)}
+                                    className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 hover:text-blue-600 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600 transition-colors font-bold shadow-sm min-w-[140px] flex items-center justify-center space-x-2">
+                                    <Settings className="w-4 h-4" />
+                                    <span>Config</span>
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className="text-gray-900 font-medium dark:text-white">Configuration</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Edit prompts and image patterns</span>
                                 </div>
                             </div>
                         </div>
+                    ) : (
+                        <div className="max-w-4xl mx-auto">
+                            <div className="mb-4 flex items-center justify-between">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add Manual Suggestions</h3>
+                                <button
+                                    onClick={() => setShowAddDialog(false)}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Base Name (e.g., script_name)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={suggestionTitle}
+                                        onChange={e => setSuggestionTitle(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        placeholder="my_video_script"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Suggestions Content
+                                    </label>
+                                    <textarea
+                                        value={suggestionContent}
+                                        onChange={e => setSuggestionContent(e.target.value)}
+                                        className="w-full h-64 p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white font-mono text-sm"
+                                        placeholder="Paste your suggestions here..."
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Format: Suggestion: [prompt]
+                                    </p>
+                                </div>
+                                <div className="flex space-x-4 pt-4">
+                                    <button onClick={handleAddSuggestion}
+                                        className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+                                        Save Suggestions
+                                    </button>
+                                    <button onClick={() => setShowAddDialog(false)}
+                                        className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {showConfigModal && (
+                        <ImageSuggestionsConfigModal onClose={() => setShowConfigModal(false)} />
                     )}
                 </div>
             </div>

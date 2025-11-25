@@ -272,6 +272,124 @@ app.post('/save-script', (req, res) => {
     }
 });
 
+// Helper to parse .env file
+const parseEnv = () => {
+    const envPath = path.join(__dirname, 'backend', '.env');
+    if (!fs.existsSync(envPath)) {
+        fs.writeFileSync(envPath, '', 'utf8');
+        return {};
+    }
+    const content = fs.readFileSync(envPath, 'utf8');
+    const lines = content.split('\n');
+    const env = {};
+    lines.forEach(line => {
+        const match = line.match(/^([^=]+)=(.*)$/);
+        if (match) {
+            const key = match[1].trim();
+            const value = match[2].trim();
+            env[key] = value;
+        }
+    });
+    return env;
+};
+
+// Helper to save .env file
+const saveEnv = (env) => {
+    const envPath = path.join(__dirname, 'backend', '.env');
+    const content = Object.entries(env)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('\n');
+    fs.writeFileSync(envPath, content, 'utf8');
+};
+
+// Endpoint to get API keys (masked)
+app.get('/api/env', (req, res) => {
+    try {
+        const env = parseEnv();
+        const maskedEnv = {};
+        Object.keys(env).forEach(key => {
+            const val = env[key];
+            if (val && val.length > 8) {
+                maskedEnv[key] = `${val.substring(0, 4)}...${val.substring(val.length - 4)}`;
+            } else if (val) {
+                maskedEnv[key] = '********';
+            } else {
+                maskedEnv[key] = '';
+            }
+        });
+        res.json({ success: true, keys: maskedEnv });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint to update an API key
+app.post('/api/env', (req, res) => {
+    const { key, value } = req.body;
+    if (!key) return res.json({ success: false, error: 'Key is required' });
+
+    try {
+        const env = parseEnv();
+        env[key] = value;
+        saveEnv(env);
+        res.json({ success: true, message: `Key ${key} updated` });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint to delete an API key
+app.delete('/api/env/:key', (req, res) => {
+    const { key } = req.params;
+    try {
+        const env = parseEnv();
+        if (env[key]) {
+            delete env[key];
+            saveEnv(env);
+        }
+        res.json({ success: true, message: `Key ${key} deleted` });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint to get prompt file content
+app.get('/api/prompts/:filename', (req, res) => {
+    const { filename } = req.params;
+    const filePath = path.join(__dirname, 'prompts', filename);
+
+    try {
+        if (!fs.existsSync(filePath)) {
+            // If file doesn't exist, return empty string or create it
+            return res.json({ success: true, content: '' });
+        }
+        const content = fs.readFileSync(filePath, 'utf8');
+        res.json({ success: true, content });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
+// Endpoint to save prompt file content
+app.post('/api/prompts/:filename', (req, res) => {
+    const { filename } = req.params;
+    const { content } = req.body;
+    const filePath = path.join(__dirname, 'prompts', filename);
+
+    try {
+        // Ensure prompts directory exists
+        const promptsDir = path.dirname(filePath);
+        if (!fs.existsSync(promptsDir)) {
+            fs.mkdirSync(promptsDir, { recursive: true });
+        }
+
+        fs.writeFileSync(filePath, content, 'utf8');
+        res.json({ success: true, message: 'File saved successfully' });
+    } catch (error) {
+        res.json({ success: false, error: error.message });
+    }
+});
+
 server.listen(PORT, () => {
     console.log(`Backend server running on http://localhost:${PORT}`);
 });

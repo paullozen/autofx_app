@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { User, Radio, Eraser, FileText, MessageSquare, Image, Palette, Film, Moon, Sun, LogIn, AudioWaveform, Download, Key } from 'lucide-react';
-import ApiKeyModal from './ApiKeyModal';
 
 const Sidebar = ({ selectedStage, onSelectStage, theme, toggleTheme }) => {
-  const [isApiModalOpen, setApiModalOpen] = useState(false);
 
   const configStages = [
     { id: 'profile_generator', label: 'Create Profile', icon: User },
-    { id: 'api_key', label: 'API KEY', icon: Key },
+    { id: 'api_key', label: 'API Key', icon: Key },
   ];
 
   const pipelineStages = [
@@ -35,18 +33,10 @@ const Sidebar = ({ selectedStage, onSelectStage, theme, toggleTheme }) => {
     const isSelected = selectedStage === stage.id;
     const showDividerAfter = ['srt_generator', 'audio_downloader'].includes(stage.id);
 
-    const handleClick = () => {
-      if (stage.id === 'api_key') {
-        setApiModalOpen(true);
-      } else {
-        onSelectStage(stage.id);
-      }
-    };
-
     return (
       <React.Fragment key={stage.id}>
         <button
-          onClick={handleClick}
+          onClick={() => onSelectStage(stage.id)}
           className={`w-full flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${isSelected
             ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'}`}
@@ -103,7 +93,6 @@ const Sidebar = ({ selectedStage, onSelectStage, theme, toggleTheme }) => {
           </div>
         </div>
       </div>
-      {isApiModalOpen && <ApiKeyModal isOpen={isApiModalOpen} onClose={() => setApiModalOpen(false)} />}
     </>
   );
 };
