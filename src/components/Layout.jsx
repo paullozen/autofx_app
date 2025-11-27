@@ -2,8 +2,9 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import ExecutionLog from './ExecutionLog';
 import MainPanel from './MainPanel';
+import ProgressModal from './ProgressModal';
 
-const Layout = ({ selectedStage, onSelectStage, logs, onClearLogs, theme, toggleTheme, onExecuteScript, profiles, onSendInput, onDeleteProfile, currentScript, outputFolder, onOpenFolder, onStop, isProcessing }) => {
+const Layout = ({ selectedStage, onSelectStage, logs, onClearLogs, theme, toggleTheme, onExecuteScript, profiles, onSendInput, onDeleteProfile, currentScript, outputFolder, onOpenFolder, onStop, isProcessing, progress }) => {
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden dark:bg-gray-950 transition-colors duration-300">
             {/* Left Section: Sidebar */}
@@ -41,6 +42,11 @@ const Layout = ({ selectedStage, onSelectStage, logs, onClearLogs, theme, toggle
                             />
                         </div>
                     </div>
+                )}
+
+                {/* Progress Modal Overlay */}
+                {progress && (
+                    <ProgressModal progress={progress} onStop={onStop} />
                 )}
             </div>
         </div>

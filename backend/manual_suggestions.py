@@ -29,19 +29,22 @@ def process_manual_suggestions(base: str, chosen_profiles: list[str]) -> None:
         # Read manual suggestions
         content = manual_file.read_text(encoding="utf-8")
         
-        # EXTRACT ALL "Suggestion:" BLOCKS
-        # Use regex to find all occurrences of "Suggestion:" followed by text
+        # EXTRACT SUGGESTIONS
         import re
         
-        # Pattern to match "Suggestion:" followed by everything until the next "Suggestion:" or end
-        # This handles quotes, newlines, etc.
-        pattern = r'Suggestion:\s*(.+?)(?=Suggestion:|$)'
-        
-        # Find all matches (case-insensitive)
-        matches = re.findall(pattern, content, re.IGNORECASE | re.DOTALL)
-        
+        # Check if explicit "Suggestion:" format is used
+        if "Suggestion:" in content:
+            # Pattern to match "Suggestion:" followed by everything until the next "Suggestion:" or end
+            pattern = r'Suggestion:\s*(.+?)(?=Suggestion:|$)'
+            matches = re.findall(pattern, content, re.IGNORECASE | re.DOTALL)
+            print(f"ℹ️ {base}: Detected explicit 'Suggestion:' format.")
+        else:
+            # Assume raw format: each non-empty line is a suggestion
+            matches = [line.strip() for line in content.splitlines() if line.strip()]
+            print(f"ℹ️ {base}: Detected raw text format. Treating each line as a suggestion.")
+
         if not matches:
-            print(f"❌ {base}: No 'Suggestion:' blocks found in manual file")
+            print(f"❌ {base}: No suggestions found in manual file")
             update_stage(base, "suggestions", "error: no suggestions found")
             return
         

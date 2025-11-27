@@ -10,6 +10,8 @@ function App() {
   const [currentScript, setCurrentScript] = useState(null);
   const [outputFolder, setOutputFolder] = useState(null);
 
+  const [progress, setProgress] = useState(null);
+
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -71,6 +73,17 @@ function App() {
             // Don't ignore empty lines if they are part of formatting, but trim end to remove carriage returns
             const line = rawLine.trimEnd();
 
+            // Check for JSON progress message
+            if (line.trim().startsWith('{"type": "progress"')) {
+              try {
+                const progData = JSON.parse(line.trim());
+                setProgress(progData);
+                return; // Do not log progress JSON
+              } catch (e) {
+                // If parse fails, just log it as normal text
+              }
+            }
+
             if (line || rawLine === '') { // Keep empty lines for spacing if needed, or filter if preferred
               if (line) addLog(line); // Currently filtering empty lines to avoid too much spacing
             }
@@ -93,6 +106,7 @@ function App() {
           addLog(`Process finished with code ${data.code}`);
           setCurrentProcessId(null);
           setCurrentScript(null);
+          setProgress(null); // Reset progress
 
           // Reload profiles if profile generator finished
           if (currentScript === 'profile_generator') {
@@ -246,6 +260,7 @@ function App() {
       onOpenFolder={openFolder}
       onStop={stopExecution}
       isProcessing={!!currentProcessId}
+      progress={progress}
     />
   );
 }

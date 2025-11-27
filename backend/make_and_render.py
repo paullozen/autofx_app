@@ -231,13 +231,10 @@ def choose_variants_for_base(base: str, variants: list[str]) -> list[str]:
 # ======================
 # RENDER
 # ======================
-def render_video(base: str, timeline_path: Path, variant: str) -> bool:
-    out_path = OUTPUT_DIR / f"{base}{variant}.mp4"
+def render_video_from_scenes(base: str, scenes: list, variant: str, output_dir: Path = OUTPUT_DIR) -> bool:
+    out_path = output_dir / f"{base}{variant}.mp4"
 
     try:
-        data = json.loads(timeline_path.read_text(encoding="utf-8"))
-        scenes = data.get("scenes", [])
-
         if not scenes:
             print(f"⚠️ Empty timeline for {base}{variant}")
             return False
@@ -274,6 +271,15 @@ def render_video(base: str, timeline_path: Path, variant: str) -> bool:
 
     except Exception as e:
         print(f"❌ Error generating video for {base}{variant}: {e}")
+        return False
+
+def render_video(base: str, timeline_path: Path, variant: str) -> bool:
+    try:
+        data = json.loads(timeline_path.read_text(encoding="utf-8"))
+        scenes = data.get("scenes", [])
+        return render_video_from_scenes(base, scenes, variant)
+    except Exception as e:
+        print(f"❌ Error reading timeline for {base}{variant}: {e}")
         return False
 
 # ======================

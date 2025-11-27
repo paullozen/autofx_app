@@ -45,6 +45,9 @@ chrome_profiles/
 txt_inbox/txt_processed
 manifesto.json
 prompts/*
+backend/xml_generator.py
+backend/count_line.py
+backend/xml_renderer.py
 
 # Backup files
 *.backup
