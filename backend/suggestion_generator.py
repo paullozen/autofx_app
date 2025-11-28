@@ -13,16 +13,17 @@ from tqdm import tqdm
 
 from support_scripts.alerts import ring_bell
 from support_scripts.manifesto import ensure_entry, load_manifest, update_stage
-from support_scripts.paths import IMG_SUGGESTIONS_DIR, TXT_PROCESSED_DIR
+from support_scripts.paths import IMG_SUGGESTIONS_DIR, TXT_PROCESSED_DIR, SRT_OUTPUT_DIR
 from profiles import choose_profiles, list_profiles
 
 # ==========================
 # CONFIG
 # ==========================
 ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = ROOT.parent
 INPUT_DIR = TXT_PROCESSED_DIR
 OUTPUT_DIR = IMG_SUGGESTIONS_DIR
-PROMPT_PATH = "prompts/Scene_Suggestion.txt"
+PROMPT_PATH = PROJECT_ROOT / "prompts/Scene_Suggestion.txt"
 
 # ==========================
 # ENV
@@ -64,6 +65,49 @@ def locate_processed_txt(base: str) -> Path | None:
 
     matches = list(INPUT_DIR.rglob(f"{base}.txt"))
     return matches[0] if matches else None
+
+
+def locate_srt(base: str) -> Path | None:
+    """Locate the SRT file for a base."""
+    SRT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    folder_candidate = SRT_OUTPUT_DIR / base / f"{base}.srt"
+    if folder_candidate.exists():
+        return folder_candidate
+
+    top_level = SRT_OUTPUT_DIR / f"{base}.srt"
+    if top_level.exists():
+        return top_level
+
+    matches = list(SRT_OUTPUT_DIR.rglob(f"{base}.srt"))
+    return matches[0] if matches else None
+
+
+def parse_srt_blocks(content: str) -> list[str]:
+    """Parse SRT content and return a list of text blocks."""
+    # Normalize line endings
+    content = content.replace("\r\n", "\n").replace("\r", "\n")
+    
+    # Split by double newlines (standard block separator)
+    blocks = re.split(r'\n\s*\n', content.strip())
+    
+    parsed = []
+    for block in blocks:
+        lines = [l.strip() for l in block.splitlines() if l.strip()]
+        # Find the time line (contains '-->')
+        time_index = -1
+        for i, line in enumerate(lines):
+            if "-->" in line:
+                time_index = i
+                break
+        
+        if time_index != -1 and time_index + 1 < len(lines):
+            # Text is everything after time line
+            text_lines = lines[time_index + 1:]
+            text = " ".join(text_lines)
+            if text:
+                parsed.append(text)
+            
+    return parsed
 
 
 def read_base_lines(base: str) -> tuple[list[str], Path | None]:
@@ -308,13 +352,22 @@ def process_base(
     group_size: int,
     chosen_profiles: list[str],
     target_suggestions: int | None = None,
+    use_full_context: bool = False,
 ) -> None:
     ensure_entry(base)
     base_out_dir = OUTPUT_DIR / base
     base_out_dir.mkdir(parents=True, exist_ok=True)
 
-    # CORRECTION: Use line-by-line reading function (read_base_lines)
-    txt_lines, txt_path = read_base_lines(base)
+    # CORRECTION: Try to read SRT first, then fallback to TXT
+    srt_path = locate_srt(base)
+    if srt_path:
+        txt_lines = parse_srt_blocks(srt_path.read_text(encoding="utf-8"))
+        txt_path = srt_path
+        print(f"[{base}] Using SRT input: {srt_path.name}")
+    else:
+        txt_lines, txt_path = read_base_lines(base)
+        if txt_path:
+             print(f"[{base}] SRT not found, using TXT input: {txt_path.name}")
 
     if txt_path is None:
         update_stage(base, "suggestions", "error: processed txt not found")
@@ -329,12 +382,26 @@ def process_base(
             return
 
         prompt_core = load_text(PROMPT_PATH)
-        # CORRECTION: Prompt with clear instruction to generate ONE suggestion per BLOCK (scene)
-        full_prompt = (
-            f"{prompt_core}\n\n"
-            f"--- TEXT ---\n\n"
-            f"Generate ONE concise visual suggestion for the following block of text, starting with 'Show...' and strictly adhering to all policies and formatting rules defined above."
-        )
+        
+        if use_full_context:
+            # Join all lines to create the full context
+            full_script_context = "\n".join(txt_lines)
+            full_prompt = (
+                f"{prompt_core}\n\n"
+                f"--- FULL SCRIPT CONTEXT ---\n"
+                f"{full_script_context}\n\n"
+                f"--- INSTRUCTION ---\n"
+                f"You have read the full script above for context (tone, themes, continuity). "
+                f"Now, generate ONE concise visual suggestion for the SPECIFIC TARGET BLOCK below. "
+                f"The suggestion must start with 'Show...' and strictly adhere to all policies."
+            )
+        else:
+            # CORRECTION: Prompt with clear instruction to generate ONE suggestion per BLOCK (scene)
+            full_prompt = (
+                f"{prompt_core}\n\n"
+                f"--- TEXT ---\n\n"
+                f"Generate ONE concise visual suggestion for the following block of text, starting with 'Show...' and strictly adhering to all policies and formatting rules defined above."
+            )
 
         # CORRECTION: Use '\n' as joiner to group lines, maintaining original structure
         scenes = group_lines(txt_lines, group_size, joiner="\n")
@@ -512,6 +579,9 @@ def main() -> None:
                 group_size = max(1, int(g) if g else 1)
             except ValueError:
                 group_size = 1
+            
+            use_context_input = input("➡️ Use full script as context? (y/N): ").strip().lower()
+            use_full_context = use_context_input == 'y'
 
             print("\n🎯 Scenes to process (per file):")
             for base in selected:
@@ -530,7 +600,7 @@ def main() -> None:
                 process_base_full_script(base, global_suggestions, chosen_profiles)
             else:
                 # Calls corrected Per-Scene mode
-                process_base(base, group_size, chosen_profiles, target_suggestions)
+                process_base(base, group_size, chosen_profiles, target_suggestions, use_full_context)
 
     finally:
         ring_bell("✅ Finished processing selected bases.")

@@ -8,7 +8,8 @@
     "server": "node server.js",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:desktop": "node scripts/sync_to_desktop.cjs"
   },
   "dependencies": {
     "cors": "^2.8.5",

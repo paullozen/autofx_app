@@ -225,7 +225,7 @@ def download_roteiro_scripts():
     try:
         filter_payload = {
             "and": [
-                {"property": "Step", "select": {"equals": "2. Roteiro"}},
+                {"property": "Step", "select": {"equals": "Roteiro"}},
                 {"property": "RTD", "formula": {"string": {"equals": "READY"}}},
                 {"property": "Download", "checkbox": {"equals": False}},
             ]

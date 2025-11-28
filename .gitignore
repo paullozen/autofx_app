@@ -48,6 +48,8 @@ prompts/*
 backend/xml_generator.py
 backend/count_line.py
 backend/xml_renderer.py
+desktop_app/*
+scripts/*
 
 # Backup files
 *.backup

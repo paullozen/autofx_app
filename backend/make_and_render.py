@@ -62,27 +62,53 @@ def ts_to_sec(ts: str) -> float:
     return int(h) * 3600 + int(m) * 60 + int(s) + int(ms) / 1000
 
 def parse_srt(srt_path: Path):
-    """Reads .srt and returns list with times and durations."""
-    scenes = []
+    """
+    Reads .srt, collects start/end times, and calculates duration
+    based on the START of the current block to the START of the next block.
+    """
+    scenes_raw = []
     content = srt_path.read_text(encoding="utf-8")
     blocks = content.strip().split("\n\n")
+
+    # --- PASS 1: Extract all start/end times ---
     for idx, block in enumerate(blocks, start=1):
         lines = [l.strip() for l in block.splitlines() if l.strip()]
-        if len(lines) < 2:
+        if len(lines) < 2 or "-->" not in lines[1]:
             continue
+        
         times = lines[1]
-        if "-->" not in times:
-            continue
         start, end = times.split("-->")
         start_s, end_s = ts_to_sec(start.strip()), ts_to_sec(end.strip())
-        scenes.append({
+        
+        scenes_raw.append({
             "scene": idx,
             "start": start_s,
             "end": end_s,
-            "duration": round(max(0.01, end_s - start_s), 3),
+            "duration": end_s - start_s,  # Temporary duration, used for the last block
             "file": None
         })
-    return scenes
+    
+    # --- PASS 2: Calculate Start-to-Next-Start Duration ---
+    scenes_final = []
+    num_scenes = len(scenes_raw)
+    for i, s in enumerate(scenes_raw):
+        # Default duration: use the original SRT duration (End - Start)
+        new_duration = s["duration"] 
+        
+        # If this is NOT the last scene, use the Start of the next scene to calculate duration
+        if i < num_scenes - 1:
+            next_start = scenes_raw[i + 1]["start"]
+            new_duration = next_start - s["start"]
+
+        scenes_final.append({
+            "scene": s["scene"],
+            "start": s["start"],
+            "end": s["end"], 
+            "duration": round(max(0.01, new_duration), 3),
+            "file": None
+        })
+
+    return scenes_final
 
 def merge_timeline_by_images(base: str, scenes: list, variant: str):
     """
@@ -221,12 +247,36 @@ def select_bases_with_images_done(mf: dict):
 
 def choose_variants_for_base(base: str, variants: list[str]) -> list[str]:
     """
-    Previously interactive; now automatically processes every variant found.
+    Interactive selection of variants.
     """
     if not variants:
         return []
-    print(f"\n🎨 {base}: using all {len(variants)} detected variants ({', '.join(variants)})")
-    return variants[:]
+    
+    print(f"\n🎨 Variants found for '{base}':")
+    for i, v in enumerate(variants, 1):
+        print(f"[{i}] {v}")
+    print("[0] ALL")
+
+    choice = input(f"➡️ Select variants for '{base}' (e.g. 1,3 or 0 for all): ").strip()
+    
+    if not choice:
+        print("🚫 No variant selected. Skipping base.")
+        return []
+
+    if choice == "0" or choice.lower() == "all":
+        return variants[:]
+
+    try:
+        indices = [int(x.strip()) for x in choice.split(",")]
+        selected = [variants[i - 1] for i in indices if 1 <= i <= len(variants)]
+        if not selected:
+            print("⚠️ No valid variants selected.")
+            return []
+        print(f"✅ Selected variants: {selected}")
+        return selected
+    except Exception:
+        print("⚠️ Invalid input. Skipping base.")
+        return []
 
 # ======================
 # RENDER

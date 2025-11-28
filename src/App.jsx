@@ -27,7 +27,7 @@ function App() {
 
   const loadProfiles = async () => {
     try {
-      const response = await fetch('http://localhost:3001/list-profiles');
+      const response = await fetch('/list-profiles');
       const data = await response.json();
       if (data.success) {
         setProfiles(data.profiles);
@@ -55,7 +55,11 @@ function App() {
 
   useEffect(() => {
     // Connect to WebSocket
-    const ws = new WebSocket('ws://localhost:3001');
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = process.env.NODE_ENV === 'production'
+      ? `${protocol}//${window.location.host}`
+      : 'ws://localhost:3001';
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('Connected to WebSocket');
@@ -135,7 +139,7 @@ function App() {
       addLog(`Executing ${scriptName}.py...`);
 
       // Just trigger the execution, logs will come via WebSocket
-      await fetch('http://localhost:3001/execute', {
+      await fetch('/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +162,7 @@ function App() {
     if (!currentProcessId) return;
 
     try {
-      await fetch('http://localhost:3001/stop', {
+      await fetch('/stop', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ processId: currentProcessId })
@@ -177,7 +181,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/send-input', {
+      const response = await fetch('/send-input', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -202,7 +206,7 @@ function App() {
 
   const openFolder = async (folderPath) => {
     try {
-      const response = await fetch('http://localhost:3001/open-folder', {
+      const response = await fetch('/open-folder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +229,7 @@ function App() {
   const deleteProfile = async (profileName) => {
     if (window.confirm(`Are you sure you want to delete profile "${profileName}"?`)) {
       try {
-        const response = await fetch(`http://localhost:3001/delete-profile/${encodeURIComponent(profileName)}`, {
+        const response = await fetch(`/delete-profile/${encodeURIComponent(profileName)}`, {
           method: 'DELETE',
         });
 
