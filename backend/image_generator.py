@@ -12,6 +12,8 @@ from collections import defaultdict
 from support_scripts.alerts import ring_bell
 from profiles import list_profiles, resolve_user_data_dir
 from support_scripts.paths import MANIFEST_PATH, IMG_SUGGESTIONS_DIR, IMG_OUTPUT_DIR
+from support_scripts.manifesto import load_manifest, save_manifest
+import sys
 
 # ====== PASTAS / CONSTANTES ======
 ROOT = Path(__file__).resolve().parent
@@ -88,10 +90,6 @@ def select_pattern_text() -> str:
     return desc
 
 ALL_ERRORS = defaultdict(lambda: {"total": 0, "cenas": []})
-# pattern = load_text(PATTERN_PATH)
-# pattern='An off-white stick figure with a solid off-white head, drawn with clean lines. The main character has facial experession and wears a black cap and a black jacket layered over a white hoodie, with realistic folds and subtle shading.'
-pattern=''
-
 
 def report_errors(base: str):
     total = sum(data["total"] for data in ALL_ERRORS.values())
@@ -104,17 +102,6 @@ def report_errors(base: str):
             suffix = "..." if len(data["cenas"]) > 5 else ""
             print(f"   • Profile {profile}: {data['total']} scenes (e.g.: {sample}{suffix})")
     ALL_ERRORS.clear()
-
-
-def load_manifest() -> dict:
-    if not MANIFEST_PATH.exists():
-        return {}
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-
-
-def save_manifest(mf: dict):
-    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(mf, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def set_images_status(mf: dict, base: str, status: str, images_saved: int | None = None):
@@ -295,6 +282,20 @@ async def worker_task(worker_id: int, context, base: str, profile: str,
                 current = int(mf.get(base, {}).get("images_saved") or 0)
                 set_images_status(mf, base, "in_progress", images_saved=max(current, idx))
             pbar.update(1)
+            # Send JSON progress to frontend
+            try:
+                prog_json = json.dumps({
+                    "type": "progress",
+                    "profile": profile,
+                    "current": pbar.n,
+                    "total": pbar.total,
+                    "percentage": (pbar.n / pbar.total * 100) if pbar.total else 0
+                })
+                # Print with custom tags to ensure reliable parsing
+                sys.stdout.write(f"\n<<PROGRESS>>{prog_json}<<PROGRESS>>\n")
+                sys.stdout.flush()
+            except Exception:
+                pass
         except Exception as e:
             ALL_ERRORS[profile]["total"] += 1
             ALL_ERRORS[profile]["cenas"].append(f"{idx:03}")
@@ -319,13 +320,15 @@ async def execute_scene_batch(base: str,
     for sid in scene_ids:
         q.put_nowait(sid)
 
-    import sys
     pbar = tqdm(
         total=len(scene_ids),
         desc=desc_suffix,
         leave=True,
         file=sys.stdout,
         ncols=80,
+        mininterval=0.5,
+        ascii=True,
+        disable=False,
         bar_format="{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt}"
     )
 

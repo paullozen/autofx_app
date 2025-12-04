@@ -168,7 +168,12 @@ app.post('/execute', (req, res) => {
     const { script, input, processId } = req.body;
 
     const scriptPath = path.join(__dirname, 'backend', `${script}.py`);
-    const pythonPath = path.join(__dirname, 'venv', 'bin', 'python3');
+
+    // Determine Python executable based on platform
+    const isWin = process.platform === 'win32';
+    const pythonExecutable = isWin ? 'python.exe' : 'python3';
+    const venvBin = isWin ? 'Scripts' : 'bin';
+    const pythonPath = path.join(__dirname, 'venv', venvBin, pythonExecutable);
 
     // Build arguments for the script
     let args;

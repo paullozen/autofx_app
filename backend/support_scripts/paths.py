@@ -46,6 +46,28 @@ def ensure_dirs(*paths: Iterable[Path] | Path):
             Path(path).mkdir(parents=True, exist_ok=True)
 
 
+def to_relative(path: str | Path) -> str:
+    """
+    Convert an absolute path to a relative path from the project root.
+    Returns the original path string if it's not relative to ROOT.
+    """
+    try:
+        return str(Path(path).resolve().relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def to_absolute(path: str | Path) -> Path:
+    """
+    Convert a relative path (from project root) to an absolute Path object.
+    If the path is already absolute, returns it as a Path object.
+    """
+    p = Path(path)
+    if p.is_absolute():
+        return p
+    return ROOT / p
+
+
 def _migrate_legacy_scripts_layout():
     """Move historical output/scripts/* folders to the flattened layout."""
     if not LEGACY_SCRIPTS_ROOT.exists():

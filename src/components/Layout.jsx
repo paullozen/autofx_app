@@ -45,7 +45,7 @@ const Layout = ({ selectedStage, onSelectStage, logs, onClearLogs, theme, toggle
                 )}
 
                 {/* Progress Modal Overlay */}
-                {progress && (
+                {progress && Object.keys(progress).length > 0 && (
                     <ProgressModal progress={progress} onStop={onStop} />
                 )}
             </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './hooks/useWebSocket';
 import Layout from './components/Layout';
 
 function App() {
@@ -10,7 +11,7 @@ function App() {
   const [currentScript, setCurrentScript] = useState(null);
   const [outputFolder, setOutputFolder] = useState(null);
 
-  const [progress, setProgress] = useState(null);
+  const [progress, setProgress] = useState({});
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -53,79 +54,20 @@ function App() {
     setLogs([]);
   };
 
-  useEffect(() => {
-    // Connect to WebSocket
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = process.env.NODE_ENV === 'production'
-      ? `${protocol}//${window.location.host}`
-      : 'ws://localhost:3001';
-    const ws = new WebSocket(wsUrl);
-
-    ws.onopen = () => {
-      console.log('Connected to WebSocket');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-
-        if (data.type === 'stdout') {
-          // Split output by newlines to handle multiple lines in one message
-          const lines = data.output.split('\n');
-
-          lines.forEach(rawLine => {
-            // Don't ignore empty lines if they are part of formatting, but trim end to remove carriage returns
-            const line = rawLine.trimEnd();
-
-            // Check for JSON progress message
-            if (line.trim().startsWith('{"type": "progress"')) {
-              try {
-                const progData = JSON.parse(line.trim());
-                setProgress(progData);
-                return; // Do not log progress JSON
-              } catch (e) {
-                // If parse fails, just log it as normal text
-              }
-            }
-
-            if (line || rawLine === '') { // Keep empty lines for spacing if needed, or filter if preferred
-              if (line) addLog(line); // Currently filtering empty lines to avoid too much spacing
-            }
-
-            // Extract folder path from common patterns
-            if (line && (line.includes('salvas em:') || line.includes('salvos em') || line.includes('compactados em:'))) {
-              const match = line.match(/(?:em:|em)\s+(.+?)(?:\s|$)/);
-              if (match) {
-                const filePath = match[1].trim();
-                const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
-                if (folderPath) {
-                  setOutputFolder(folderPath);
-                }
-              }
-            }
-          });
-        } else if (data.type === 'stderr') {
-          addLog(data.output);
-        } else if (data.type === 'close') {
-          addLog(`Process finished with code ${data.code}`);
-          setCurrentProcessId(null);
-          setCurrentScript(null);
-          setProgress(null); // Reset progress
-
-          // Reload profiles if profile generator finished
-          if (currentScript === 'profile_generator') {
-            loadProfiles();
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
+  useWebSocket({
+    onLog: addLog,
+    onProgress: (progData) => setProgress(prev => ({ ...prev, [progData.profile]: progData })),
+    onProcessClose: (code) => {
+      setCurrentProcessId(null);
+      setCurrentScript(null);
+      setProgress({});
+      if (currentScript === 'profile_generator') {
+        loadProfiles();
       }
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [currentScript]);
+    },
+    onOutputFolder: setOutputFolder,
+    currentScript
+  });
 
   const executeScript = async (scriptName, input) => {
     try {

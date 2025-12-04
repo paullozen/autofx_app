@@ -2,21 +2,59 @@
 import json
 import time
 
+from pathlib import Path
 from .paths import MANIFEST_PATH
 
 
 # ==========================
 # CORE LOAD/SAVE
 # ==========================
+def _deserialize_paths(data):
+    """Recursively convert known path keys to absolute Path objects."""
+    if isinstance(data, dict):
+        for k, v in data.items():
+            if k in ("txt_file", "audio_file", "srt_file", "video_file", "image_file") and isinstance(v, str):
+                from .paths import to_absolute
+                data[k] = str(to_absolute(v))  # Keep as string for JSON compatibility in other parts, but absolute
+            elif isinstance(v, (dict, list)):
+                _deserialize_paths(v)
+    elif isinstance(data, list):
+        for item in data:
+            _deserialize_paths(item)
+    return data
+
+
+def _serialize_paths(data):
+    """Recursively convert known path keys to relative strings."""
+    if isinstance(data, dict):
+        new_data = {}
+        for k, v in data.items():
+            if k in ("txt_file", "audio_file", "srt_file", "video_file", "image_file") and isinstance(v, (str, Path)):
+                from .paths import to_relative
+                new_data[k] = to_relative(v)
+            elif isinstance(v, dict):
+                new_data[k] = _serialize_paths(v)
+            elif isinstance(v, list):
+                new_data[k] = _serialize_paths(v)
+            else:
+                new_data[k] = v
+        return new_data
+    elif isinstance(data, list):
+        return [_serialize_paths(item) for item in data]
+    return data
+
+
 def load_manifest() -> dict:
     if MANIFEST_PATH.exists():
-        return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+        return _deserialize_paths(data)
     return {}
 
 
 def save_manifest(mf: dict):
     MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(mf, indent=2, ensure_ascii=False), encoding="utf-8")
+    clean_mf = _serialize_paths(mf)
+    MANIFEST_PATH.write_text(json.dumps(clean_mf, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 # ==========================
