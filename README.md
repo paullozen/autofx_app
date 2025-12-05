@@ -1,7 +1,5 @@
 # AutoFX App - YouTube Content Pipeline
 
-# AutoFX App - YouTube Content Pipeline
-
 ## 🚀 Início Rápido (Plug-and-Play)
 
 ### Pré-requisitos
