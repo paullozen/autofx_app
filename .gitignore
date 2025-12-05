@@ -53,7 +53,7 @@ backend/xml_renderer.py
 desktop_app/*
 scripts/*
 txt_inbox/*
-thumbs/*
+thumbs2/
 
 # Backup files
 *.backup
