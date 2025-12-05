@@ -1,12 +1,13 @@
 import { spawn } from 'child_process';
+import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { fileURLToPath } from 'url';
 
 // Configuration
 const BACKEND_PORT = 3001;
 const FRONTEND_PORT = 5173; // Default Vite port
 const FRONTEND_URL = `http://localhost:${FRONTEND_PORT}`;
+const PIDS_FILE = path.join(process.cwd(), '.pids.json');
 
 console.log('🚀 Starting AutoFX Services...');
 
@@ -41,6 +42,14 @@ const backend = spawnProcess('npm', ['run', 'server'], 'Backend', '\x1b[36m'); /
 // Start Frontend
 const frontend = spawnProcess('npm', ['run', 'dev'], 'Frontend', '\x1b[32m'); // Green
 
+// Save PIDs
+const pids = {
+    main: process.pid,
+    backend: backend.pid,
+    frontend: frontend.pid
+};
+fs.writeFileSync(PIDS_FILE, JSON.stringify(pids, null, 2));
+
 // Open Browser after a short delay
 setTimeout(() => {
     console.log(`🌐 Opening ${FRONTEND_URL}...`);
@@ -52,6 +61,16 @@ setTimeout(() => {
 // Handle Exit
 const cleanup = () => {
     console.log('\n🛑 Stopping services...');
+    try {
+        if (fs.existsSync(PIDS_FILE)) {
+            fs.unlinkSync(PIDS_FILE);
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    // On Windows, we might need to be more aggressive if the shell wrapper persists
+    // But let's try standard kill first.
     backend.kill();
     frontend.kill();
     process.exit();
@@ -59,4 +78,5 @@ const cleanup = () => {
 
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
-process.on('exit', cleanup);
+// process.exit() is called in cleanup, so we don't need to listen to 'exit' to call cleanup again
+// to avoid infinite loops if cleanup calls process.exit()
