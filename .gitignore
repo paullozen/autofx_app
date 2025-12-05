@@ -52,7 +52,7 @@ backend/count_line.py
 backend/xml_renderer.py
 desktop_app/*
 scripts/*
-txt_inbox/*
+txt_inbox/txt_processed/
 thumbs2/
 
 # Backup files

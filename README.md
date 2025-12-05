@@ -4,62 +4,65 @@
 
 ## 🚀 Início Rápido (Plug-and-Play)
 
-Para facilitar o uso, criamos scripts automáticos que instalam dependências e iniciam tudo para você.
-
-### Linux / Mac
-1. Abra o terminal na pasta do projeto.
-2. Execute o script:
-   ```bash
-   ./start_app.sh
-   ```
-
-### Windows
-1. Dê um duplo clique no arquivo `start_app.bat`.
-
-O script irá verificar e instalar automaticamente:
-- Dependências do Node.js (`npm install`)
-- Ambiente virtual Python e bibliotecas (`venv`, `pip install`)
-- Navegadores necessários (`playwright`)
-
-Em seguida, ele abrirá os servidores Backend e Frontend.
-
----
-
-## 🛠️ Instalação Manual (Alternativa)
-
 ### Pré-requisitos
-- Node.js 18+
-- Python 3.x
+- **Node.js** (v18 ou superior)
+- **Python** (v3.10 ou superior)
 
 ### Instalação
 
-1. Instale as dependências Node.js:
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/paullozen/autofx_app.git
+   cd autofx_app
+   ```
+
+2. Instale as dependências do Node.js:
+   ```bash
+   npm install
+   ```
+
+3. Configure o ambiente Python:
+   ```bash
+   # Cria o ambiente virtual
+   python3 -m venv venv
+
+   # Ativa o ambiente (Windows)
+   .\venv\Scripts\activate
+   # OU Ativa o ambiente (Mac/Linux)
+   source venv/bin/activate
+
+   # Instala as dependências
+   pip install -r backend/requirements.txt
+   playwright install chromium
+   ```
+
+### Como Rodar
+
+O sistema foi unificado para rodar facilmente em qualquer sistema operacional.
+
+#### Opção 1: Via Terminal (Recomendado)
+Para iniciar (Windows, Mac, Linux):
 ```bash
-npm install
+npm start
+```
+Isso iniciará tanto o backend quanto o frontend e abrirá o navegador automaticamente.
+
+Para parar:
+```bash
+npm stop
 ```
 
-2. Crie o ambiente virtual Python e instale as dependências:
-```bash
-python3 -m venv venv
-./venv/bin/pip install -r backend/requirements.txt
-./venv/bin/playwright install chromium
-```
+#### Opção 2: Scripts de Atalho
 
-### Executar a Aplicação
+**Windows:**
+- Iniciar: Duplo clique em `start.bat`
+- Parar: Duplo clique em `stop.bat`
 
-Você precisa executar **dois servidores** simultaneamente:
+**Linux / Mac:**
+- Iniciar: `./start.sh`
+- Parar: `./stop.sh`
 
-#### Terminal 1 - Frontend (React + Vite)
-```bash
-npm run dev
-```
-Acesse: http://localhost:5173
-
-#### Terminal 2 - Backend (Node.js + Python)
-```bash
-npm run server
-```
-Servidor rodando em: http://localhost:3001
+---
 
 ## 📋 Funcionalidades
 
